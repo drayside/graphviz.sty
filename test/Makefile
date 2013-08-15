@@ -1,34 +1,33 @@
-P = main
+PDF = $(shell find . -maxdepth 1 -type f -name 'pdf*.tex' | sort)
+PS = $(shell find . -maxdepth 1 -type f -name 'ps*.tex' | sort)
 
-all: $(P).pdf $(P).ps
 
-$(P).ps: $(P).dvi
+all: $(PS:.tex=.ps) $(PDF:.tex=.pdf)
+
+%.pdf: %.tex clean
+	pdflatex -shell-escape $<
+	pdflatex -shell-escape $<
+
+%.dvi: %.tex clean
+	latex -shell-escape $<
+	latex -shell-escape $<
+
+%.ps: %.dvi
 	dvips $<
 
-$(P).dvi: $(P).tex
-	echo "\\usepackage[ps]{graphviz}" > options.tex
-	latex -shell-escape $<
-	latex -shell-escape $<
-
-$(P).pdf: $(P).tex
-	echo "\\usepackage[pdf]{graphviz}" > options.tex
-	pdflatex -shell-escape $<
-	pdflatex -shell-escape $<
-
 clean:
+	rm -rf ./tmp
 	rm -f *~
 	rm -f *.dot
 	rm -f *.ps
 	rm -f *.pdf
-	rm -f options.tex
-	rm -f $(P).aux 
-	rm -f $(P).glo 
-	rm -f $(P).gls 
-	rm -f $(P).idx 
-	rm -f $(P).ilg 
-	rm -f $(P).log 
-	rm -f $(P).dvi 
-	rm -f $(P).zip 
+	rm -f *.aux 
+	rm -f *.glo 
+	rm -f *.gls 
+	rm -f *.idx 
+	rm -f *.ilg 
+	rm -f *.log 
+	rm -f *.dvi 
 
 clobber: clean
 	rm -f $(P).pdf

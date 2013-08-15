@@ -1,14 +1,18 @@
-PDF = $(shell find . -maxdepth 1 -type f -name 'pdf*.tex' | sort)
-PS = $(shell find . -maxdepth 1 -type f -name 'ps*.tex' | sort)
+.PHONY: all clean clobber
+
+TPDF = $(shell find . -maxdepth 1 -type f -name 'pdf*.tex' | sort)
+TPS = $(shell find . -maxdepth 1 -type f -name 'ps*.tex' | sort)
+PS = $(TPS:.tex=.ps) 
+PDF = $(TPDF:.tex=.pdf)
 
 
-all: $(PS:.tex=.ps) $(PDF:.tex=.pdf)
+all: $(PS) $(PDF)
 
-%.pdf: %.tex clean
+%.pdf: %.tex
 	pdflatex -shell-escape $<
 	pdflatex -shell-escape $<
 
-%.dvi: %.tex clean
+%.dvi: %.tex
 	latex -shell-escape $<
 	latex -shell-escape $<
 
@@ -17,6 +21,8 @@ all: $(PS:.tex=.ps) $(PDF:.tex=.pdf)
 
 clean:
 	rm -rf ./tmp
+	rm -f master.gvpr
+	rm -f master.graphviz
 	rm -f *~
 	rm -f *.dot
 	rm -f *.ps
@@ -30,5 +36,5 @@ clean:
 	rm -f *.dvi 
 
 clobber: clean
-	rm -f $(P).pdf
-	rm -f $(P).ps
+	rm -f $(PS)
+	rm -f $(PDF)

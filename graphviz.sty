@@ -46,11 +46,11 @@
 \RequirePackage{graphicx}
 \ifpsfrag \RequirePackage{psfrag} \fi
 \newcommand{\digraph}[2][scale=1]{
-  \inputdigraph[#1]{#2}{dot}%       % Include the digraph.
+  \inputdigraph[#1]{#2}{dot}%       % Include the generated ps/pdf.
   \@digraph{digraph}{#2}%           % Generate the .dot file.
 }
 \newcommand{\neatograph}[2][scale=1]{
-  \inputdigraph[#1]{#2}{neato}%     % Include the digraph.
+  \inputdigraph[#1]{#2}{neato}%     % Include the generated ps/pdf.
   \@digraph{graph}{#2}%             % Generate the .dot file.
 }
 \begingroup
@@ -71,9 +71,7 @@
     \fi%
     \endgroup}%
 \newcommand{\inputdigraph}[3][scale=1]{
-    % execute dot (nb: requires latex -shell-escape)
-    % TODO: fix this ... need backslash n
-    %\immediate\write18{sed -i -e "s/<br>/n/g" #2.dot}
+    % execute dot or neato (nb: requires latex -shell-escape)
     \immediate\write18{#3 -T\@outextspace -o #2.\@outextspace #2.dot}
     \IfFileExists{#2.\@outext}{ % the postscript/pdf exists: include it
             \ifpsfrag

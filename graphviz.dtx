@@ -225,7 +225,7 @@
 % \begin{macro}{ps}
 % \changes{v0.92}{2013/08/15}{added ps option (previously default behaviour)}
 %
-% PS support.
+% Tell Graphviz to generate Postscript files as output.
 % 
 %    \begin{macrocode}
 \newcommand{\@outext}{ps}
@@ -240,7 +240,7 @@
 % \begin{macro}{pdf}
 % \changes{v0.92}{2013/08/15}{added pdf option}
 %
-% PDF support.
+% Tell Graphviz to generate PDF files as output.
 % 
 %    \begin{macrocode}
 \DeclareOption{pdf}{%
@@ -302,7 +302,7 @@
 % 
 %    \begin{macrocode}
 \newcommand{\digraph}[2][scale=1]{
-  \inputdigraph[#1]{#2}{dot}%       % Include the digraph.
+  \inputdigraph[#1]{#2}{dot}%       % Include the generated ps/pdf.
   \@digraph{digraph}{#2}%           % Generate the .dot file.
 }
 %    \end{macrocode}
@@ -312,11 +312,12 @@
 % \begin{macro}{\neatograph}
 % \changes{v0.9}{2006/01/11}{added support for neato}
 %
-% This is the command the user uses for \textsf{neato}.
+% This is the command the user uses for \textsf{neato}. The syntax is
+% the same as for |\digraph|.
 %
 %    \begin{macrocode}
 \newcommand{\neatograph}[2][scale=1]{
-  \inputdigraph[#1]{#2}{neato}%     % Include the digraph.
+  \inputdigraph[#1]{#2}{neato}%     % Include the generated ps/pdf.
   \@digraph{graph}{#2}%             % Generate the .dot file.
 }
 %    \end{macrocode}
@@ -377,14 +378,12 @@
 % This is usually only called by |\digraph|,
 % but may be called by the user.
 %
-% The purpose is to include the PostScript rendering of the graph if
+% The purpose is to include the ps/pdf rendering of the graph if
 % it exists, or to give instructions on how to generate it.
 %
 %    \begin{macrocode}
 \newcommand{\inputdigraph}[3][scale=1]{
     % execute dot or neato (nb: requires latex -shell-escape)
-    % TODO: fix this ... need backslash n
-    %\immediate\write18{sed -i -e "s/<br>/n/g" #2.dot}
     \immediate\write18{#3 -T\@outextspace -o #2.\@outextspace #2.dot}
     \IfFileExists{#2.\@outext}{ % the postscript/pdf exists: include it
             \ifpsfrag
@@ -425,7 +424,8 @@
 % the \texttt{psfrag} option has been selected.
 % 
 % Here's a picture of the process (drawn with \textsf{dot},
-% naturally):
+% naturally). The picture shows the process using dvips, but pdflatex
+% is now also supported with the pdf option.
 %
 % \begin{center}
 % 

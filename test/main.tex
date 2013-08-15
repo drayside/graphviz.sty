@@ -1,0 +1,12 @@
+\documentclass{article}
+%\usepackage{graphviz}
+\input{options} % Makefile puts \usepackage{graphviz} into options.tex
+\begin{document}
+
+\section{Dot}
+\digraph[scale=0.5]{abc}{rankdir=LR; a->b->c; b->d;}
+
+\section{Neato}
+\neatograph[scale=0.5]{xyz}{rankdir=LR; w--y; x--y--z;}
+
+\end{document}

@@ -1,0 +1,24 @@
+This package has a little macro that lets you write directed graphs in
+graphviz/dot syntax inside your LaTeX files, and have the rendered
+version automatically included.  For example:
+
+    \digraph[scale=0.5]{abc}{rankdir=LR; a->b; b->c}
+
+Will result in three ovals in a row, labeled "a", "b", and "c",
+respectively.  There are some details and known limitations described
+in the documentation.
+
+
+Distributed files include:
+
+    README          -- this file
+    graphviz.pdf    -- pre-compiled documentation
+    graphviz.sty    -- style file ready to use
+    graphviz.dtx    -- full source (generates .sty and .dvi/.pdf)
+    graphviz.ins    -- used to extract .sty from .dtx
+    Makefile        -- may be used to generate .sty and .pdf
+
+
+Thanks to Scott Pakin for writing the tutorial on how to create .dtx
+and .ins files.
+

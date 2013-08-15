@@ -1,0 +1,100 @@
+%%
+%% This is file `graphviz.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% graphviz.dtx  (with options: `package')
+%% 
+%% This is a generated file.
+%% 
+%% Copyright (C) 2004 by Derek Rayside <drayside@mit.edu>
+%% 
+%% This file may be distributed and/or modified under the conditions of
+%% the LaTeX Project Public License, either version 1.2 of this license
+%% or (at your option) any later version.  The latest version of this
+%% license is in:
+%% 
+%%    http://www.latex-project.org/lppl.txt
+%% 
+%% and version 1.2 or later is part of all distributions of LaTeX version
+%% 1999/12/01 or later.
+%% 
+\NeedsTeXFormat{LaTeX2e}[1999/12/01]
+\ProvidesPackage{graphviz}
+   [2013/04/25 v0.91 .dtx graphviz file]
+\newif\ifsinglefile
+\DeclareOption{singlefile}{
+    \singlefiletrue
+    \AtBeginDocument{ % open a new file handle
+        \newwrite\masterdotfile
+        \immediate\openout\masterdotfile=master.graphviz}
+    \AtEndDocument{ % close the file
+        \immediate\closeout\masterdotfile}}
+\newif\ifpsfrag
+\DeclareOption{psfrag}{ \psfragtrue }
+\newcommand{\@outext}{ps}
+\newcommand{\@outextspace}{ps }
+\DeclareOption{ps}{
+    \renewcommand{\@outext}{ps}
+    \renewcommand{\@outextspace}{ps }}
+\DeclareOption{pdf}{%
+    \renewcommand{\@outext}{pdf}%
+    \renewcommand{\@outextspace}{pdf }}
+\ExecuteOptions{ps}
+\ProcessOptions\relax % LaTeX class guide says it is wise to relax
+\RequirePackage{graphicx}
+\ifpsfrag \RequirePackage{psfrag} \fi
+\newcommand{\digraph}[2][scale=1]{
+  \inputdigraph[#1]{#2}{dot}%       % Include the digraph.
+  \@digraph{digraph}{#2}%           % Generate the .dot file.
+}
+\newcommand{\neatograph}[2][scale=1]{
+  \inputdigraph[#1]{#2}{neato}%     % Include the digraph.
+  \@digraph{graph}{#2}%             % Generate the .dot file.
+}
+\begingroup
+  \catcode`\^^M=\active%
+  \gdef\@digraph{\begingroup\catcode`\^^M=\active\def^^M{^^J}\@@digraph}%
+\endgroup
+\def\@@digraph#1#2#3{%
+    \ifsinglefile% write the digraph to the master file
+        \expandafter\def\csname -\endcsname{\string\n}%
+        \immediate\write\masterdotfile{#1 #2 {#3}}%
+        \write18{gvpr -o #2.dot 'BEG_G { if ($.name == "#1") {write($);} }' master.graphviz }%
+    \else% open a new file handle
+        \newwrite\dotfile%
+        \immediate\openout\dotfile=#2.dot%
+        \expandafter\def\csname -\endcsname{\string\n}%
+        \immediate\write\dotfile{#1 #2 {#3}}%
+        \immediate\closeout\dotfile%
+    \fi%
+    \endgroup}%
+\newcommand{\inputdigraph}[3][scale=1]{
+    % execute dot (nb: requires latex -shell-escape)
+    % TODO: fix this ... need backslash n
+    %\immediate\write18{sed -i -e "s/<br>/n/g" #2.dot}
+    \immediate\write18{#3 -T\@outextspace -o #2.\@outextspace #2.dot}
+    \IfFileExists{#2.\@outext}{ % the postscript/pdf exists: include it
+            \ifpsfrag
+                % per the ladot 2.2 source code, psfrag has a problem with
+                % graphviz 2.2, and some sed hackery is necessary to work around
+                \write18{sed -ibackup -e "s/xshow/pop show/g" #2.ps}
+            \fi
+            \includegraphics[#1]{#2.\@outext}
+        }
+        % else: the postscript/pdf doesn't exist: tell the user how to create it
+        {
+            \fbox{ \begin{tabular}{l}
+                The file \texttt{#2.\@outext} hasn't been created from
+                \texttt{#2.dot} yet. \\
+                Run `\texttt{dot -T\@outextspace -o #2.\@outextspace #2.dot}'
+                to create it. \\
+                Or invoke \LaTeX\ with the \texttt{-shell-escape} option
+                to have this done automatically. \\
+                \end{tabular}}
+        }
+}
+\endinput
+%%
+%% End of file `graphviz.sty'.

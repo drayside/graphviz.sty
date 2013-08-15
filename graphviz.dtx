@@ -1,6 +1,6 @@
 % \iffalse meta-comment
 %
-% Copyright (C) 2003 by Derek Rayside <drayside@uwaterloo.ca>
+% Copyright (C) 2003-2013 by Derek Rayside <drayside@uwaterloo.ca>
 % --------------------------------------------------
 % 
 % This file may be distributed and/or modified under the conditions of
@@ -18,7 +18,7 @@
 % \iffalse
 %<package>\NeedsTeXFormat{LaTeX2e}[1999/12/01]
 %<package>\ProvidesPackage{graphviz} 
-%<package>   [2013/08/15 v0.92 .dtx graphviz file] 
+%<package>   [2013/08/15 v0.94 .dtx graphviz file] 
 %
 %<*driver>
 \documentclass{ltxdoc} 
@@ -157,13 +157,18 @@
 % \begin{macro}{singlefile}
 % \changes{v0.6}{2005/12/03}{added singlefile option}
 % \changes{v0.7}{2005/12/29}{now using gvpr instead of gawk to break out individual digraphs from master.graphviz}
+% \changes{v0.94}{2013/08/15}{writing gvpr commands to separate script to be executed when master.graphviz is closed}
 %
 % \LaTeX\ has a small number of file handles (about 16 or so).  So if
 % you can't have too many digraphs in your tex file before you run out
 % of file handles.  The \texttt{singlefile} option is a work-around:
 % it writes all of your digraphs to a single file
-% (\texttt{master.graphviz}), and then uses \textsf{gvpr} to split that 
+% (\texttt{tmpmaster.graphviz}), and then uses \textsf{gvpr} to split that 
 % file into individual dot files for processing by \textsf{dot}.
+%
+% The \textsc{gvpr} commands are all written to a second file 
+% (\texttt{tmpmaster.gvpr}), which
+% is executed once the \texttt{tmpmaster.graphviz} file has been closed.
 %
 % \textsf{gvpr} does not seem to be packaged with the Windows version
 % of \textsf{dot}.
@@ -172,11 +177,18 @@
 \newif\ifsinglefile
 \DeclareOption{singlefile}{
     \singlefiletrue
-    \AtBeginDocument{ % open a new file handle
-        \newwrite\masterdotfile
-        \immediate\openout\masterdotfile=master.graphviz}
-    \AtEndDocument{ % close the file
-        \immediate\closeout\masterdotfile}}
+    \AtBeginDocument{% open a new file handle
+        \newwrite\masterdotfile%
+        \immediate\openout\masterdotfile=\@tmpdir tmpmaster.graphviz%
+        \newwrite\mastergvprfile%
+        \immediate\openout\mastergvprfile=\@tmpdir tmpmaster.gvpr}
+    \AtEndDocument{% close the file
+        % close the dot file and the gvpr file
+        \immediate\closeout\masterdotfile%
+        \immediate\closeout\mastergvprfile%
+        % execute the gvpr file
+        \immediate\write18{gvpr -f \@tmpdir tmpmaster.gvpr \@tmpdir tmpmaster.graphviz}%
+        }}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -246,6 +258,20 @@
 \DeclareOption{pdf}{%
     \renewcommand{\@outext}{pdf}%
     \renewcommand{\@outextspace}{pdf }}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{tmpdir}
+% \changes{v0.93}{2013/08/15}{added tmpdir option}
+%
+% Write all generated files in |./tmp/|
+% 
+%    \begin{macrocode}
+\newcommand{\@tmpdir}{}
+\DeclareOption{tmpdir}{%
+    \immediate\write18{mkdir ./tmp/}%
+    \renewcommand{\@tmpdir}{./tmp/}}
 %    \end{macrocode}
 % \end{macro}
 %
@@ -354,13 +380,13 @@
 % hidden through a |%| sign at the end of line.
 %    \begin{macrocode}
 \def\@@digraph#1#2#3{%
-    \ifsinglefile% write the digraph to the master file
+    \ifsinglefile% write the graph to the master file
         \expandafter\def\csname -\endcsname{\string\n}%
         \immediate\write\masterdotfile{#1 #2 {#3}}%
-        \write18{gvpr -o #2.dot 'BEG_G { if ($.name == "#1") {write($);} }' master.graphviz }%
+        \immediate\write\mastergvprfile{BEG_G { if ($.name == "#2") {writeG($G,"\@tmpdir#2.dot");} }}%
     \else% open a new file handle
         \newwrite\dotfile%
-        \immediate\openout\dotfile=#2.dot%
+        \immediate\openout\dotfile=\@tmpdir#2.dot%
         \expandafter\def\csname -\endcsname{\string\n}%
         \immediate\write\dotfile{#1 #2 {#3}}%
         \immediate\closeout\dotfile%
@@ -384,21 +410,21 @@
 %    \begin{macrocode}
 \newcommand{\inputdigraph}[3][scale=1]{
     % execute dot or neato (nb: requires latex -shell-escape)
-    \immediate\write18{#3 -T\@outextspace -o #2.\@outextspace #2.dot}
-    \IfFileExists{#2.\@outext}{ % the postscript/pdf exists: include it
+    \immediate\write18{#3 -T\@outextspace -o \@tmpdir#2.\@outextspace \@tmpdir#2.dot}
+    \IfFileExists{\@tmpdir#2.\@outext}{ % the postscript/pdf exists: include it
             \ifpsfrag
                 % per the ladot 2.2 source code, psfrag has a problem with
                 % graphviz 2.2, and some sed hackery is necessary to work around
-                \write18{sed -ibackup -e "s/xshow/pop show/g" #2.ps}
+                \write18{sed -ibackup -e "s/xshow/pop show/g" \@tmpdir#2.ps}
             \fi
-            \includegraphics[#1]{#2.\@outext} 
+            \includegraphics[#1]{\@tmpdir#2.\@outext} 
         }
         % else: the postscript/pdf doesn't exist: tell the user how to create it
         { 
             \fbox{ \begin{tabular}{l}
                 The file \texttt{#2.\@outext} hasn't been created from 
-                \texttt{#2.dot} yet. \\ 
-                Run `\texttt{dot -T\@outextspace -o #2.\@outextspace #2.dot}' 
+                \texttt{\@tmpdir#2.dot} yet. \\ 
+                Run `\texttt{dot -T\@outextspace -o \@tmpdir#2.\@outextspace \@tmpdir#2.dot}' 
                 to create it. \\
                 Or invoke \LaTeX\ with the \texttt{-shell-escape} option
                 to have this done automatically. \\

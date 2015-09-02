@@ -1,6 +1,6 @@
 % \iffalse meta-comment
 %
-% Copyright (C) 2003-2013 by Derek Rayside <drayside@uwaterloo.ca>
+% Copyright (C) 2003-2015 by Derek Rayside <drayside@uwaterloo.ca>
 % --------------------------------------------------
 % 
 % This file may be distributed and/or modified under the conditions of
@@ -18,7 +18,7 @@
 % \iffalse
 %<package>\NeedsTeXFormat{LaTeX2e}[1999/12/01]
 %<package>\ProvidesPackage{graphviz} 
-%<package>   [2013/08/15 v0.94 .dtx graphviz file] 
+%<package>   [2015/09/02 v0.95 .dtx graphviz file]
 %
 %<*driver>
 \documentclass{ltxdoc} 
@@ -400,6 +400,7 @@
 % \begin{macro}{\inputdigraph}
 % \changes{v0.2}{2003/12/24}{minor adjustments}
 % \changes{v0.8}{2005/12/30}{added psfrag support}
+% \changes{v0.95}{2015/09/02}{changing write18 to immediate-write18}
 %
 % This is usually only called by |\digraph|,
 % but may be called by the user.
@@ -415,7 +416,7 @@
             \ifpsfrag
                 % per the ladot 2.2 source code, psfrag has a problem with
                 % graphviz 2.2, and some sed hackery is necessary to work around
-                \write18{sed -ibackup -e "s/xshow/pop show/g" \@tmpdir#2.ps}
+                \immediate\write18{sed -ibackup -e "s/xshow/pop show/g" \@tmpdir#2.ps}
             \fi
             \includegraphics[#1]{\@tmpdir#2.\@outext} 
         }

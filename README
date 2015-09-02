@@ -18,6 +18,8 @@ Distributed files include:
     graphviz.ins    -- used to extract .sty from .dtx
     Makefile        -- may be used to generate .sty and .pdf
 
+Note: to use with lyx, create directory /usr/share/texmf/tex/latex/graphviz , 
+put the .sty  file in this directory, and run `texhash`.
 
 Thanks to Scott Pakin for writing the tutorial on how to create .dtx
 and .ins files.
